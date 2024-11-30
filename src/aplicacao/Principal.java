@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 import bancoDados.BancoDados;
@@ -115,14 +117,21 @@ public class Principal {
 		System.out.println();
 		
 		try {
+			
+			Map<String, Integer> map = new HashMap<>();
+			
 			rs = ps.executeQuery("select * from produto_servico");
-			while (rs.next()) {
-				System.out.println(rs.getString("nome") 
-						+ "- " 
-						+ rs.getInt("quantidade")
-						+ ": "
-						+ String.format("%.2f", rs.getDouble("preco")));
+			while (rs.next()){
+				if (map.containsKey(rs.getString("nome"))) {
+					int soma = map.get(rs.getString("nome"));
+					map.put(rs.getString("nome"), rs.getInt("quantidade") + soma);
+				} else {
+					map.put(rs.getString("nome"), rs.getInt("quantidade"));
+				}
 			}
+			
+			for (String a: map.keySet())
+				System.out.println(a + "- " + map.get(a));
 			
 			rs = ps.executeQuery("select * from caixa");
 			double soma = 0;
@@ -136,14 +145,14 @@ public class Principal {
 		}
 		catch (SQLException e) {
 			e.printStackTrace();
+		} finally {
+			BancoDados.fechaPS(ps);
+			BancoDados.fecharRS(rs);
+			BancoDados.fecharConectar();
 		}
 		System.out.println();
 		System.out.println("*** SISTEMA FINALIZADO! ***");
 		
-		tc.close();
-		BancoDados.fechaPS(ps);
-		BancoDados.fecharRS(rs);
-		BancoDados.fecharConectar();
-		
+		tc.close();		
 	}
 }
